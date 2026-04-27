@@ -5,10 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>수강생 사진 명부</title>
 
-<!-- Firebase SDK -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
   import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-database.js";
+  import { getStorage, ref as sRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-storage.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyBNrzAJtYQh8ZBpZaLD-WC2GlLKSwdoPcY",
@@ -17,122 +17,105 @@
     projectId: "filmphoto-ae70b",
     storageBucket: "filmphoto-ae70b.firebasestorage.app",
     messagingSenderId: "71282282465",
-    appId: "1:71282282465:web:1b75bdde9151d3d27e8ca0",
-    measurementId: "G-D08PMV2K88"
+    appId: "1:71282282465:web:1b75bdde9151d3d27e8ca0"
   };
 
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
+  const storage = getStorage(app);
+
   window._db = db;
-  window._ref = ref;
+  window._storage = storage;
+  window._dbRef = ref;
+  window._sRef = sRef;
   window._set = set;
   window._onValue = onValue;
+  window._uploadBytes = uploadBytes;
+  window._getDownloadURL = getDownloadURL;
   window.firebaseReady = true;
   window.dispatchEvent(new Event('firebase-ready'));
 </script>
 
-<!-- SheetJS -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
 <style>
-  :root {
-    --bg: #f7f6f2;
-    --card: #ffffff;
-    --border: #e2e0d8;
-    --accent: #2c5f8a;
-    --accent-light: #e8f0f7;
-    --text: #1a1a1a;
-    --muted: #6b6a65;
-    --danger: #c0392b;
-    --radius: 10px;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', -apple-system, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+:root {
+  --bg:#f7f6f2; --card:#fff; --border:#e2e0d8;
+  --accent:#2c5f8a; --accent-light:#e8f0f7;
+  --text:#1a1a1a; --muted:#6b6a65; --danger:#c0392b;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Apple SD Gothic Neo','Malgun Gothic',-apple-system,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+header{background:var(--accent);color:#fff;padding:16px 28px;display:flex;align-items:center;justify-content:space-between}
+header h1{font-size:19px;font-weight:600}
+header .sub{font-size:12px;opacity:.7;margin-top:2px}
+.toolbar{display:flex;gap:8px;padding:14px 28px;align-items:center;flex-wrap:wrap;background:var(--card);border-bottom:1px solid var(--border)}
+.upload-btn{display:flex;align-items:center;gap:6px;padding:8px 16px;background:var(--accent);color:#fff;border-radius:8px;cursor:pointer;font-size:13px;font-weight:500}
+.upload-btn:hover{opacity:.88}
+input[type=file]{display:none}
+.btn{padding:8px 16px;border-radius:8px;border:1.5px solid var(--border);background:var(--card);color:var(--text);font-size:13px;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:6px;font-family:inherit}
+.btn:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-light)}
+.btn.danger{border-color:#e8d0ce;color:var(--danger)}
+.btn.danger:hover{background:#fdf0f0}
+.sep{width:1px;height:28px;background:var(--border);margin:0 4px}
+.status-bar{padding:8px 28px;font-size:12px;color:var(--muted);background:var(--accent-light);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px}
+.dot{width:7px;height:7px;border-radius:50%;background:#ccc;flex-shrink:0}
+.dot.ok{background:#27ae60}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:18px;padding:24px 28px}
+.card{background:var(--card);border-radius:12px;border:1.5px solid var(--border);overflow:hidden;transition:box-shadow .2s,transform .2s;position:relative}
+.card:hover{box-shadow:0 4px 18px rgba(0,0,0,.10);transform:translateY(-2px)}
+.img-wrap{position:relative;cursor:zoom-in;overflow:hidden;aspect-ratio:3/4;background:#e8edf2;display:flex;align-items:center;justify-content:center}
+.img-wrap img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .3s}
+.img-wrap:hover img{transform:scale(1.04)}
+.zoom-badge{position:absolute;bottom:8px;right:8px;background:rgba(0,0,0,.55);color:#fff;border-radius:20px;padding:3px 9px;font-size:11px;opacity:0;transition:opacity .2s;pointer-events:none}
+.img-wrap:hover .zoom-badge{opacity:1}
+.img-placeholder{font-size:36px;color:#b0bec5}
+.uploading-overlay{position:absolute;inset:0;background:rgba(255,255,255,.88);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;font-size:12px;color:var(--accent);font-weight:500}
+.pbar-wrap{width:65%;height:5px;background:#ddd;border-radius:3px}
+.pbar{height:100%;background:var(--accent);border-radius:3px;animation:pulse-bar 1.2s ease-in-out infinite}
+@keyframes pulse-bar{0%,100%{width:30%}50%{width:80%}}
+.card-body{padding:12px}
+.card-filename{font-size:11px;color:var(--muted);margin-bottom:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.field{margin-bottom:6px}
+.field label{display:block;font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px}
+.field input{width:100%;padding:6px 8px;border-radius:6px;border:1.5px solid var(--border);font-size:13px;color:var(--text);background:var(--bg);font-family:inherit}
+.field input:focus{outline:none;border-color:var(--accent);background:#fff}
+.save-badge{position:absolute;top:8px;right:8px;background:rgba(39,174,96,.9);color:#fff;border-radius:20px;padding:2px 8px;font-size:10px;font-weight:600;opacity:0;transition:opacity .3s;pointer-events:none}
+.save-badge.show{opacity:1}
+.empty{grid-column:1/-1;text-align:center;padding:80px 20px;color:var(--muted)}
+.empty .icon{font-size:50px;margin-bottom:14px}
+.empty h2{font-size:17px;font-weight:500;margin-bottom:6px}
 
-  header { background: var(--accent); color: #fff; padding: 18px 32px; display: flex; align-items: center; justify-content: space-between; }
-  header h1 { font-size: 20px; font-weight: 600; }
-  header .subtitle { font-size: 13px; opacity: 0.75; margin-top: 2px; }
+/* 라이트박스 */
+#lb{display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:1000;flex-direction:column;align-items:center;justify-content:center;gap:14px}
+#lb.on{display:flex}
+#lb img{max-width:88vw;max-height:80vh;border-radius:8px;object-fit:contain;box-shadow:0 8px 40px rgba(0,0,0,.6)}
+#lb-info{color:#fff;text-align:center}
+#lb-info .name{font-size:17px;font-weight:600}
+#lb-info .sid{font-size:13px;opacity:.7;margin-top:3px}
+#lb-close{position:fixed;top:18px;right:22px;color:#fff;font-size:30px;cursor:pointer;background:none;border:none;line-height:1;z-index:1001}
 
-  .toolbar { display: flex; gap: 10px; padding: 16px 32px; align-items: center; flex-wrap: wrap; background: var(--card); border-bottom: 1px solid var(--border); }
-  .toolbar label.upload-btn { display: flex; align-items: center; gap: 6px; padding: 8px 16px; background: var(--accent); color: #fff; border-radius: var(--radius); cursor: pointer; font-size: 13px; font-weight: 500; }
-  .toolbar label.upload-btn:hover { opacity: 0.88; }
-  .toolbar input[type=file] { display: none; }
+/* 토스트 */
+#toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(80px);background:#1a1a1a;color:#fff;padding:10px 22px;border-radius:24px;font-size:13px;font-weight:500;z-index:999;transition:transform .3s;white-space:nowrap}
+#toast.on{transform:translateX(-50%) translateY(0)}
 
-  .btn { padding: 8px 16px; border-radius: var(--radius); border: 1.5px solid var(--border); background: var(--card); color: var(--text); font-size: 13px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 6px; font-family: inherit; }
-  .btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
-  .btn.danger { border-color: #e8d0ce; color: var(--danger); }
-  .btn.danger:hover { background: #fdf0f0; }
-  .toolbar-sep { width: 1px; height: 28px; background: var(--border); margin: 0 4px; }
-
-  .status-bar { padding: 8px 32px; font-size: 12px; color: var(--muted); background: var(--accent-light); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; }
-  .status-dot { width: 7px; height: 7px; border-radius: 50%; background: #ccc; flex-shrink: 0; }
-  .status-dot.ok { background: #27ae60; }
-
-  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px; padding: 28px 32px; }
-
-  .card { background: var(--card); border-radius: 12px; border: 1.5px solid var(--border); overflow: hidden; transition: box-shadow 0.2s, transform 0.2s; position: relative; }
-  .card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.10); transform: translateY(-2px); }
-
-  .card-img-wrap { position: relative; cursor: zoom-in; }
-  .card-img { width: 100%; aspect-ratio: 3/4; object-fit: cover; display: block; }
-  .card-img-placeholder { width: 100%; aspect-ratio: 3/4; background: #e8edf2; display: flex; align-items: center; justify-content: center; font-size: 40px; color: #aab8c8; }
-  .zoom-hint { position: absolute; bottom: 6px; right: 6px; background: rgba(0,0,0,0.5); color: #fff; border-radius: 20px; padding: 2px 8px; font-size: 10px; opacity: 0; transition: opacity 0.2s; pointer-events: none; }
-  .card-img-wrap:hover .zoom-hint { opacity: 1; }
-
-  .card-body { padding: 12px; }
-  .card-filename { font-size: 11px; color: var(--muted); margin-bottom: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .card-field { margin-bottom: 6px; }
-  .card-field label { display: block; font-size: 10px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 3px; }
-  .card-field input { width: 100%; padding: 6px 8px; border-radius: 6px; border: 1.5px solid var(--border); font-size: 13px; color: var(--text); background: var(--bg); font-family: inherit; }
-  .card-field input:focus { outline: none; border-color: var(--accent); background: #fff; }
-
-  .save-indicator { position: absolute; top: 8px; right: 8px; background: rgba(39,174,96,0.9); color: #fff; border-radius: 20px; padding: 2px 8px; font-size: 10px; font-weight: 600; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
-  .save-indicator.show { opacity: 1; }
-
-  .empty-state { grid-column: 1 / -1; text-align: center; padding: 80px 20px; color: var(--muted); }
-  .empty-state .icon { font-size: 52px; margin-bottom: 16px; }
-  .empty-state h2 { font-size: 18px; font-weight: 500; margin-bottom: 8px; }
-
-  /* ── Lightbox ── */
-  #lightbox { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.88); z-index: 1000; align-items: center; justify-content: center; flex-direction: column; gap: 12px; }
-  #lightbox.show { display: flex; }
-  #lightbox img { max-width: 90vw; max-height: 82vh; border-radius: 8px; object-fit: contain; box-shadow: 0 8px 40px rgba(0,0,0,0.6); }
-  #lightbox-info { color: #fff; font-size: 15px; text-align: center; }
-  #lightbox-info .lb-name { font-weight: 600; font-size: 17px; }
-  #lightbox-info .lb-id { opacity: 0.7; font-size: 13px; margin-top: 2px; }
-  #lightbox-close { position: fixed; top: 20px; right: 24px; color: #fff; font-size: 28px; cursor: pointer; line-height: 1; background: none; border: none; }
-
-  /* ── 인쇄용 PDF 레이아웃 ── */
-  #print-area { display: none; }
-
-  @media print {
-    body > *:not(#print-area) { display: none !important; }
-    #print-area {
-      display: block !important;
-      font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
-    }
-    .print-header { text-align: center; margin-bottom: 16px; }
-    .print-header h2 { font-size: 18px; font-weight: 700; }
-    .print-header p { font-size: 11px; color: #888; margin-top: 4px; }
-    .print-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
-    .print-card { border: 1px solid #ddd; border-radius: 6px; overflow: hidden; break-inside: avoid; }
-    .print-card img { width: 100%; aspect-ratio: 3/4; object-fit: cover; display: block; }
-    .print-card .print-no-img { width: 100%; aspect-ratio: 3/4; background: #eee; display: flex; align-items: center; justify-content: center; font-size: 24px; }
-    .print-card-body { padding: 6px 8px; }
-    .print-card-body .pname { font-size: 12px; font-weight: 700; }
-    .print-card-body .pid { font-size: 10px; color: #666; margin-top: 1px; }
-    .print-card-body .pfile { font-size: 9px; color: #aaa; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  }
-
-  #toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(80px); background: #1a1a1a; color: #fff; padding: 10px 22px; border-radius: 24px; font-size: 13px; font-weight: 500; z-index: 999; transition: transform 0.3s; white-space: nowrap; }
-  #toast.show { transform: translateX(-50%) translateY(0); }
-
-  @media (max-width: 600px) {
-    .toolbar { padding: 12px 16px; }
-    .grid { padding: 16px; gap: 14px; }
-    header { padding: 14px 16px; }
-    .status-bar { padding: 8px 16px; }
-  }
+/* 인쇄 */
+@media print{
+  body>*:not(#print-area){display:none!important}
+  #print-area{display:block!important;font-family:'Apple SD Gothic Neo','Malgun Gothic',sans-serif}
+  .ph{text-align:center;margin-bottom:14px;border-bottom:2px solid #333;padding-bottom:10px}
+  .ph h2{font-size:20px;font-weight:700}
+  .ph p{font-size:11px;color:#777;margin-top:3px}
+  .pg{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+  .pc{border:1px solid #ccc;border-radius:6px;overflow:hidden;break-inside:avoid}
+  .pc img{width:100%;aspect-ratio:3/4;object-fit:cover;display:block}
+  .pc .no-img{width:100%;aspect-ratio:3/4;background:#eee;display:flex;align-items:center;justify-content:center;font-size:22px}
+  .pc-body{padding:5px 7px}
+  .pc-body .pname{font-size:12px;font-weight:700}
+  .pc-body .pid{font-size:10px;color:#555;margin-top:1px}
+  .pc-body .pfn{font-size:9px;color:#aaa;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+}
+#print-area{display:none}
 </style>
 </head>
 <body>
@@ -140,9 +123,9 @@
 <header>
   <div>
     <h1>📋 수강생 사진 명부</h1>
-    <div class="subtitle">사진을 업로드하고 학번·이름을 입력하면 자동 저장됩니다</div>
+    <div class="sub">사진 업로드 → 학번·이름 입력 → 자동 저장 (Firebase Storage)</div>
   </div>
-  <div style="font-size:13px;opacity:0.7;" id="count-label">0명</div>
+  <div style="font-size:13px;opacity:.7" id="count-label">0명</div>
 </header>
 
 <div class="toolbar">
@@ -150,138 +133,145 @@
     📁 사진 폴더 선택
     <input type="file" id="file-input" multiple accept="image/*">
   </label>
-  <div class="toolbar-sep"></div>
+  <div class="sep"></div>
   <button class="btn" onclick="printPDF()">🖨️ PDF 저장</button>
   <button class="btn" onclick="downloadExcel()">⬇ Excel 저장</button>
-  <div class="toolbar-sep"></div>
+  <div class="sep"></div>
   <button class="btn danger" onclick="clearAll()">🗑 전체 삭제</button>
 </div>
 
 <div class="status-bar">
-  <span class="status-dot" id="fb-dot"></span>
+  <span class="dot" id="fb-dot"></span>
   <span id="fb-status">Firebase 연결 중...</span>
 </div>
 
 <div class="grid" id="grid">
-  <div class="empty-state">
+  <div class="empty">
     <div class="icon">🖼️</div>
     <h2>사진을 업로드해 주세요</h2>
-    <p>위의 "사진 폴더 선택" 버튼으로 여러 장을 한번에 선택할 수 있습니다</p>
+    <p>"사진 폴더 선택"으로 여러 장을 한번에 선택하세요</p>
   </div>
 </div>
 
-<!-- 인쇄 전용 영역 -->
 <div id="print-area">
-  <div class="print-header">
+  <div class="ph">
     <h2>수강생 사진 명부</h2>
     <p id="print-date"></p>
   </div>
-  <div class="print-grid" id="print-grid"></div>
+  <div class="pg" id="print-grid"></div>
 </div>
 
-<!-- 라이트박스 -->
-<div id="lightbox" onclick="closeLightbox()">
-  <button id="lightbox-close" onclick="closeLightbox()">✕</button>
+<div id="lb" onclick="closeLB(event)">
+  <button id="lb-close" onclick="document.getElementById('lb').classList.remove('on')">✕</button>
   <img id="lb-img" src="" alt="">
-  <div id="lightbox-info">
-    <div class="lb-name" id="lb-name"></div>
-    <div class="lb-id" id="lb-id"></div>
+  <div id="lb-info">
+    <div class="name" id="lb-name"></div>
+    <div class="sid" id="lb-sid"></div>
   </div>
 </div>
 
 <div id="toast"></div>
 
 <script>
-const state = { items: [], dbReady: false };
+const state = { items: [], ready: false };
 
-function waitFirebase(cb) {
+function waitFB(cb) {
   if (window.firebaseReady) cb();
   else window.addEventListener('firebase-ready', cb, { once: true });
 }
 
-waitFirebase(() => {
-  state.dbReady = true;
+waitFB(() => {
+  state.ready = true;
   document.getElementById('fb-dot').classList.add('ok');
-  document.getElementById('fb-status').textContent = 'Firebase 연결됨 — 데이터 자동 저장';
-  loadFromFirebase();
+  document.getElementById('fb-status').textContent = 'Firebase 연결됨 — 이미지는 Storage에, 데이터는 DB에 저장';
+  loadDB();
 });
 
-function saveToFirebase(item) {
-  if (!state.dbReady) return;
-  window._set(window._ref(window._db, 'students/' + item.id), {
+function saveDB(item) {
+  if (!state.ready) return;
+  window._set(window._dbRef(window._db, 'students/' + item.id), {
     filename: item.filename,
     studentId: item.studentId || '',
     name: item.name || '',
-    dataUrl: item.dataUrl || '',
+    imageUrl: item.imageUrl || '',
   });
 }
 
-function loadFromFirebase() {
-  window._onValue(window._ref(window._db, 'students'), snap => {
+function loadDB() {
+  window._onValue(window._dbRef(window._db, 'students'), snap => {
     const data = snap.val() || {};
     Object.entries(data).forEach(([id, v]) => {
-      const existing = state.items.find(x => x.id === id);
-      if (existing) {
-        existing.studentId = v.studentId;
-        existing.name = v.name;
-        if (!existing.dataUrl && v.dataUrl) existing.dataUrl = v.dataUrl;
+      const ex = state.items.find(x => x.id === id);
+      if (ex) {
+        ex.studentId = v.studentId;
+        ex.name = v.name;
+        if (!ex.imageUrl && v.imageUrl) ex.imageUrl = v.imageUrl;
       } else {
-        state.items.push({ id, filename: v.filename, studentId: v.studentId, name: v.name, dataUrl: v.dataUrl });
+        state.items.push({ id, filename: v.filename, studentId: v.studentId, name: v.name, imageUrl: v.imageUrl, uploading: false });
       }
     });
     renderAll();
   });
 }
 
-function removeFromFirebase(id) {
-  if (!state.dbReady) return;
-  window._set(window._ref(window._db, 'students/' + id), null);
+function removeDB(id) {
+  if (!state.ready) return;
+  window._set(window._dbRef(window._db, 'students/' + id), null);
 }
 
-// 업로드
-document.getElementById('file-input').addEventListener('change', e => {
-  Array.from(e.target.files).forEach(file => {
-    if (state.items.find(x => x.filename === file.name)) return;
-    const id = 'img_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
-    const reader = new FileReader();
-    reader.onload = ev => {
-      const item = { id, filename: file.name, dataUrl: ev.target.result, studentId: '', name: '' };
-      state.items.push(item);
-      saveToFirebase(item);
+// 파일 업로드 → Firebase Storage
+document.getElementById('file-input').addEventListener('change', async e => {
+  const files = Array.from(e.target.files);
+  for (const file of files) {
+    if (state.items.find(x => x.filename === file.name)) { showToast(file.name + ' — 이미 업로드된 파일'); continue; }
+    const id = 'img_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6);
+    const item = { id, filename: file.name, studentId: '', name: '', imageUrl: '', uploading: true };
+    state.items.push(item);
+    renderAll();
+    try {
+      const storageRef = window._sRef(window._storage, 'students/' + id + '_' + file.name);
+      await window._uploadBytes(storageRef, file);
+      item.imageUrl = await window._getDownloadURL(storageRef);
+      item.uploading = false;
+      saveDB(item);
       renderAll();
-    };
-    reader.readAsDataURL(file);
-  });
+      showToast('✅ ' + file.name + ' 업로드 완료');
+    } catch (err) {
+      item.uploading = false;
+      item.error = true;
+      renderAll();
+      showToast('❌ 업로드 실패: ' + err.message);
+      console.error(err);
+    }
+  }
   e.target.value = '';
 });
 
-// 렌더링
 function renderAll() {
   const grid = document.getElementById('grid');
   document.getElementById('count-label').textContent = state.items.length + '명';
-
   if (state.items.length === 0) {
-    grid.innerHTML = `<div class="empty-state"><div class="icon">🖼️</div><h2>사진을 업로드해 주세요</h2><p>"사진 폴더 선택"으로 여러 장을 한번에 선택하세요</p></div>`;
+    grid.innerHTML = `<div class="empty"><div class="icon">🖼️</div><h2>사진을 업로드해 주세요</h2><p>"사진 폴더 선택"으로 여러 장을 한번에 선택하세요</p></div>`;
     return;
   }
-
   grid.innerHTML = state.items.map(item => `
     <div class="card" id="card-${item.id}">
-      <span class="save-indicator" id="si-${item.id}">저장됨 ✓</span>
-      <div class="card-img-wrap" onclick="openLightbox('${item.id}')">
-        ${item.dataUrl
-          ? `<img class="card-img" src="${item.dataUrl}" alt="${item.filename}" loading="lazy">`
-          : `<div class="card-img-placeholder">📷</div>`}
-        <span class="zoom-hint">🔍 원본 보기</span>
+      <span class="save-badge" id="sb-${item.id}">저장됨 ✓</span>
+      <div class="img-wrap" onclick="openLB('${item.id}')">
+        ${item.imageUrl
+          ? `<img src="${item.imageUrl}" alt="${item.filename}" loading="lazy">`
+          : `<div class="img-placeholder">${item.error ? '❌' : '📷'}</div>`}
+        ${item.uploading ? `<div class="uploading-overlay"><span>업로드 중...</span><div class="pbar-wrap"><div class="pbar"></div></div></div>` : ''}
+        ${item.imageUrl ? `<span class="zoom-badge">🔍 원본 보기</span>` : ''}
       </div>
       <div class="card-body">
         <div class="card-filename" title="${item.filename}">${item.filename}</div>
-        <div class="card-field">
+        <div class="field">
           <label>학번</label>
           <input type="text" value="${item.studentId || ''}" placeholder="예: 20241234"
             oninput="handleInput('${item.id}', 'studentId', this.value)">
         </div>
-        <div class="card-field">
+        <div class="field">
           <label>이름</label>
           <input type="text" value="${item.name || ''}" placeholder="홍길동"
             oninput="handleInput('${item.id}', 'name', this.value)">
@@ -291,93 +281,84 @@ function renderAll() {
   `).join('');
 }
 
-// 자동저장
 const timers = {};
 function handleInput(id, field, value) {
   const item = state.items.find(x => x.id === id);
   if (!item) return;
   item[field] = value;
   clearTimeout(timers[id]);
-  timers[id] = setTimeout(() => { saveToFirebase(item); showSaveIndicator(id); }, 700);
+  timers[id] = setTimeout(() => {
+    saveDB(item);
+    const el = document.getElementById('sb-' + id);
+    if (el) { el.classList.add('show'); setTimeout(() => el.classList.remove('show'), 2000); }
+    showToast('자동 저장됨');
+  }, 700);
 }
 
-function showSaveIndicator(id) {
-  const el = document.getElementById('si-' + id);
-  if (!el) return;
-  el.classList.add('show');
-  setTimeout(() => el.classList.remove('show'), 2000);
-  showToast('자동 저장됨');
+function clearAll() {
+  if (!confirm('모든 데이터를 삭제할까요?')) return;
+  state.items.forEach(item => removeDB(item.id));
+  state.items = [];
+  renderAll();
+  showToast('전체 삭제됨');
+}
+
+function openLB(id) {
+  const item = state.items.find(x => x.id === id);
+  if (!item || !item.imageUrl) { showToast('이미지가 아직 업로드 중입니다'); return; }
+  document.getElementById('lb-img').src = item.imageUrl;
+  document.getElementById('lb-name').textContent = item.name || '(이름 없음)';
+  document.getElementById('lb-sid').textContent = item.studentId ? '학번: ' + item.studentId : item.filename;
+  document.getElementById('lb').classList.add('on');
+}
+function closeLB(e) {
+  if (e.target === document.getElementById('lb')) document.getElementById('lb').classList.remove('on');
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') document.getElementById('lb').classList.remove('on'); });
+
+function printPDF() {
+  if (state.items.length === 0) { showToast('사진이 없습니다'); return; }
+  document.getElementById('print-date').textContent = new Date().toLocaleDateString('ko-KR') + ' 기준  |  총 ' + state.items.length + '명';
+  const pg = document.getElementById('print-grid');
+  pg.innerHTML = state.items.map(item => `
+    <div class="pc">
+      ${item.imageUrl ? `<img src="${item.imageUrl}" alt="">` : `<div class="no-img">📷</div>`}
+      <div class="pc-body">
+        <div class="pname">${item.name || '(이름 없음)'}</div>
+        <div class="pid">${item.studentId || '학번 없음'}</div>
+        <div class="pfn">${item.filename}</div>
+      </div>
+    </div>
+  `).join('');
+  const imgs = pg.querySelectorAll('img');
+  let loaded = 0;
+  if (imgs.length === 0) { window.print(); return; }
+  showToast('이미지 로딩 중... 잠시 후 인쇄창이 열립니다');
+  imgs.forEach(img => {
+    if (img.complete) { if (++loaded === imgs.length) window.print(); }
+    else { img.onload = img.onerror = () => { if (++loaded === imgs.length) window.print(); }; }
+  });
+}
+
+function downloadExcel() {
+  if (state.items.length === 0) { showToast('데이터가 없습니다'); return; }
+  const rows = [['번호', '파일명', '학번', '이름', '이미지 URL']];
+  state.items.forEach((item, i) => rows.push([i + 1, item.filename, item.studentId || '', item.name || '', item.imageUrl || '']));
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols'] = [{ wch: 6 }, { wch: 32 }, { wch: 14 }, { wch: 14 }, { wch: 60 }];
+  XLSX.utils.book_append_sheet(wb, ws, '수강생명부');
+  XLSX.writeFile(wb, '수강생명부_' + new Date().toISOString().slice(0, 10) + '.xlsx');
+  showToast('Excel 저장 완료!');
 }
 
 let toastTimer;
 function showToast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg;
-  t.classList.add('show');
+  t.classList.add('on');
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => t.classList.remove('show'), 1800);
-}
-
-// 전체 삭제
-function clearAll() {
-  if (!confirm('모든 사진과 데이터를 삭제할까요?')) return;
-  state.items.forEach(item => removeFromFirebase(item.id));
-  state.items = [];
-  renderAll();
-  showToast('전체 삭제됨');
-}
-
-// ── 라이트박스 ──
-function openLightbox(id) {
-  const item = state.items.find(x => x.id === id);
-  if (!item || !item.dataUrl) return;
-  document.getElementById('lb-img').src = item.dataUrl;
-  document.getElementById('lb-name').textContent = item.name || '(이름 없음)';
-  document.getElementById('lb-id').textContent = item.studentId ? '학번: ' + item.studentId : item.filename;
-  document.getElementById('lightbox').classList.add('show');
-}
-function closeLightbox() {
-  document.getElementById('lightbox').classList.remove('show');
-}
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
-
-// ── PDF: 브라우저 인쇄 기능 사용 (한글 완벽 지원) ──
-function printPDF() {
-  if (state.items.length === 0) { showToast('사진이 없습니다'); return; }
-
-  // 인쇄 영역 채우기
-  document.getElementById('print-date').textContent = new Date().toLocaleDateString('ko-KR') + ' 기준';
-  const pg = document.getElementById('print-grid');
-  pg.innerHTML = state.items.map((item, i) => `
-    <div class="print-card">
-      ${item.dataUrl
-        ? `<img src="${item.dataUrl}" alt="${item.filename}">`
-        : `<div class="print-no-img">📷</div>`}
-      <div class="print-card-body">
-        <div class="pname">${item.name || '(이름 없음)'}</div>
-        <div class="pid">${item.studentId || '학번 없음'}</div>
-        <div class="pfile">${item.filename}</div>
-      </div>
-    </div>
-  `).join('');
-
-  showToast('인쇄 대화상자가 열립니다. PDF로 저장을 선택하세요!');
-  setTimeout(() => window.print(), 400);
-}
-
-// ── Excel 저장 ──
-function downloadExcel() {
-  if (state.items.length === 0) { showToast('데이터가 없습니다'); return; }
-  const rows = [['번호', '파일명', '학번', '이름']];
-  state.items.forEach((item, i) => {
-    rows.push([i + 1, item.filename, item.studentId || '', item.name || '']);
-  });
-  const wb = XLSX.utils.book_new();
-  const ws = XLSX.utils.aoa_to_sheet(rows);
-  ws['!cols'] = [{ wch: 6 }, { wch: 32 }, { wch: 14 }, { wch: 14 }];
-  XLSX.utils.book_append_sheet(wb, ws, '수강생명부');
-  XLSX.writeFile(wb, '수강생명부_' + new Date().toISOString().slice(0,10) + '.xlsx');
-  showToast('Excel 저장 완료!');
+  toastTimer = setTimeout(() => t.classList.remove('on'), 2500);
 }
 </script>
 </body>
