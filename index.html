@@ -36,7 +36,7 @@
   --accent:#2c5f8a; --accent-light:#e8f0f7;
   --text:#1a1a1a; --muted:#6b6a65;
   --danger:#c0392b; --success:#1a7a4a;
-  --admin:#7b3fa0;
+  --admin:#7b3fa0; --student:#1a6b4a;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Apple SD Gothic Neo','Malgun Gothic',-apple-system,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
@@ -44,13 +44,12 @@ body{font-family:'Apple SD Gothic Neo','Malgun Gothic',-apple-system,sans-serif;
 header{background:var(--accent);color:#fff;padding:16px 28px;display:flex;align-items:center;justify-content:space-between;gap:12px}
 header h1{font-size:19px;font-weight:600}
 header .sub{font-size:12px;opacity:.7;margin-top:2px}
-.header-right{display:flex;align-items:center;gap:12px;flex-shrink:0}
+.header-right{display:flex;align-items:center;gap:10px;flex-shrink:0}
 #count-label{font-size:13px;opacity:.8}
-#admin-btn{padding:6px 14px;border-radius:20px;border:1.5px solid rgba(255,255,255,.5);background:transparent;color:#fff;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;font-family:inherit;white-space:nowrap}
+#admin-btn{padding:6px 14px;border-radius:20px;border:1.5px solid rgba(255,255,255,.5);background:transparent;color:#fff;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap}
 #admin-btn:hover{background:rgba(255,255,255,.15)}
 #admin-btn.active{background:#fff;color:var(--admin);border-color:#fff}
 
-/* 관리자 모드 배너 */
 #admin-banner{display:none;background:#f3e8ff;border-bottom:2px solid var(--admin);padding:8px 28px;font-size:13px;color:var(--admin);font-weight:600;align-items:center;gap:8px}
 #admin-banner.on{display:flex}
 #admin-banner span{opacity:.7;font-weight:400}
@@ -58,13 +57,13 @@ header .sub{font-size:12px;opacity:.7;margin-top:2px}
 .toolbar{display:flex;gap:8px;padding:12px 28px;align-items:center;flex-wrap:wrap;background:var(--card);border-bottom:1px solid var(--border)}
 .upload-btn{display:flex;align-items:center;gap:6px;padding:7px 14px;background:var(--accent);color:#fff;border-radius:8px;cursor:pointer;font-size:13px;font-weight:500}
 .upload-btn:hover{opacity:.88}
-.upload-btn.disabled{opacity:.4;pointer-events:none}
+.upload-btn.off{opacity:.35;pointer-events:none}
 input[type=file]{display:none}
 .btn{padding:7px 14px;border-radius:8px;border:1.5px solid var(--border);background:var(--card);color:var(--text);font-size:13px;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:5px;font-family:inherit}
 .btn:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-light)}
 .btn.danger{border-color:#e8d0ce;color:var(--danger)}
 .btn.danger:hover{background:#fdf0f0}
-.btn.disabled{opacity:.35;pointer-events:none}
+.btn.off{opacity:.35;pointer-events:none}
 .sep{width:1px;height:26px;background:var(--border);margin:0 2px}
 
 .status-bar{padding:7px 28px;font-size:12px;color:var(--muted);background:var(--accent-light);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px}
@@ -75,6 +74,10 @@ input[type=file]{display:none}
 
 .card{background:var(--card);border-radius:12px;border:1.5px solid var(--border);overflow:hidden;transition:box-shadow .2s,transform .2s;position:relative}
 .card:hover{box-shadow:0 4px 18px rgba(0,0,0,.09);transform:translateY(-2px)}
+/* 학생 비번 설정된 카드 */
+.card.has-pw{border-color:#a8d8b9}
+/* 현재 세션에서 잠금 해제된 카드 */
+.card.unlocked-student{border-color:var(--student)}
 
 .img-wrap{position:relative;cursor:zoom-in;overflow:hidden;aspect-ratio:3/4;background:#e8edf2;display:flex;align-items:center;justify-content:center}
 .img-wrap img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .3s}
@@ -87,61 +90,67 @@ input[type=file]{display:none}
 .pbar{height:100%;background:var(--accent);border-radius:3px;animation:pulse-bar 1.2s ease-in-out infinite}
 @keyframes pulse-bar{0%,100%{width:30%}50%{width:80%}}
 
-/* 잠금 오버레이 (읽기 전용) */
-.lock-overlay{position:absolute;inset:0;z-index:5;cursor:not-allowed;display:none}
-.card.locked .lock-overlay{display:block}
-.card.locked .card-body input{pointer-events:none;background:#f5f5f5;color:#999;border-color:#e8e8e8}
-.lock-icon{position:absolute;top:8px;left:8px;background:rgba(0,0,0,.45);color:#fff;border-radius:20px;padding:3px 8px;font-size:10px}
-
 .card-body{padding:12px}
 .card-filename{font-size:11px;color:var(--muted);margin-bottom:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* 입력 영역 */
 .field{margin-bottom:6px}
 .field label{display:block;font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px}
 .field input{width:100%;padding:6px 8px;border-radius:6px;border:1.5px solid var(--border);font-size:13px;color:var(--text);background:var(--bg);font-family:inherit;transition:border-color .15s}
 .field input:focus{outline:none;border-color:var(--accent);background:#fff}
+.field input[readonly]{background:#f5f5f5;color:#999;border-color:#e8e8e8;cursor:not-allowed}
 
-/* 저장됨 배지 — 눈에 잘 띄게 */
-.save-badge{
-  position:absolute;top:8px;right:8px;
-  background:var(--success);color:#fff;
-  border-radius:6px;padding:4px 10px;
-  font-size:11px;font-weight:700;
-  opacity:0;transition:opacity .3s;
-  pointer-events:none;z-index:10;
-  box-shadow:0 2px 8px rgba(0,0,0,.2);
-}
+/* 카드 하단 버튼 영역 */
+.card-actions{display:flex;gap:6px;margin-top:8px}
+.card-btn{flex:1;padding:5px 8px;border-radius:6px;border:1.5px solid var(--border);background:var(--bg);font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s}
+.card-btn.set-pw{color:var(--student);border-color:#a8d8b9}
+.card-btn.set-pw:hover{background:#e8f5ee}
+.card-btn.unlock{color:var(--accent);border-color:#b0cde8}
+.card-btn.unlock:hover{background:var(--accent-light)}
+.card-btn.lock-again{color:var(--muted);border-color:var(--border)}
+.card-btn.lock-again:hover{background:#f0f0f0}
+
+/* 저장됨 배지 */
+.save-badge{position:absolute;top:8px;right:8px;background:var(--success);color:#fff;border-radius:6px;padding:4px 10px;font-size:11px;font-weight:700;opacity:0;transition:opacity .3s;pointer-events:none;z-index:10;box-shadow:0 2px 8px rgba(0,0,0,.2)}
 .save-badge.show{opacity:1}
+
+/* 상태 배지 (카드 상단) */
+.status-chip{position:absolute;top:8px;left:8px;border-radius:20px;padding:3px 8px;font-size:10px;font-weight:700;z-index:5}
+.chip-locked{background:rgba(0,0,0,.45);color:#fff}
+.chip-unlocked{background:rgba(26,106,74,.85);color:#fff}
+.chip-nopw{background:rgba(180,180,180,.7);color:#fff}
 
 .empty{grid-column:1/-1;text-align:center;padding:80px 20px;color:var(--muted)}
 .empty .icon{font-size:50px;margin-bottom:14px}
 .empty h2{font-size:17px;font-weight:500;margin-bottom:6px}
 
-/* 비밀번호 모달 */
-#pw-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:2000;align-items:center;justify-content:center}
-#pw-modal.on{display:flex}
-.pw-box{background:#fff;border-radius:14px;padding:28px 28px 24px;width:320px;box-shadow:0 10px 40px rgba(0,0,0,.25)}
-.pw-box h3{font-size:16px;font-weight:700;margin-bottom:6px}
-.pw-box p{font-size:13px;color:var(--muted);margin-bottom:18px}
-.pw-box input{width:100%;padding:10px 12px;border-radius:8px;border:1.5px solid var(--border);font-size:15px;font-family:inherit;letter-spacing:3px;margin-bottom:6px}
-.pw-box input:focus{outline:none;border-color:var(--accent)}
-.pw-error{font-size:12px;color:var(--danger);min-height:16px;margin-bottom:12px}
-.pw-btns{display:flex;gap:8px}
-.pw-btns button{flex:1;padding:10px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit}
-.pw-confirm{background:var(--accent);color:#fff;border:none}
-.pw-confirm:hover{opacity:.88}
-.pw-cancel{background:var(--bg);color:var(--text);border:1.5px solid var(--border)}
-.pw-cancel:hover{background:#eee}
+/* 모달 공통 */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:2000;align-items:center;justify-content:center}
+.modal-bg.on{display:flex}
+.modal-box{background:#fff;border-radius:14px;padding:28px 28px 22px;width:320px;box-shadow:0 10px 40px rgba(0,0,0,.25)}
+.modal-box h3{font-size:16px;font-weight:700;margin-bottom:5px}
+.modal-box p{font-size:13px;color:var(--muted);margin-bottom:16px;line-height:1.5}
+.modal-box input{width:100%;padding:10px 12px;border-radius:8px;border:1.5px solid var(--border);font-size:15px;font-family:inherit;letter-spacing:2px;margin-bottom:5px}
+.modal-box input:focus{outline:none;border-color:var(--accent)}
+.modal-error{font-size:12px;color:var(--danger);min-height:16px;margin-bottom:12px}
+.modal-btns{display:flex;gap:8px}
+.modal-btns button{flex:1;padding:10px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit}
+.mb-confirm{background:var(--accent);color:#fff;border:none}
+.mb-confirm:hover{opacity:.88}
+.mb-cancel{background:var(--bg);color:var(--text);border:1.5px solid var(--border)}
+.mb-cancel:hover{background:#eee}
+.mb-danger{background:var(--danger);color:#fff;border:none}
 
 /* 라이트박스 */
 #lb{display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:1000;flex-direction:column;align-items:center;justify-content:center;gap:14px}
 #lb.on{display:flex}
-#lb img{max-width:88vw;max-height:80vh;border-radius:8px;object-fit:contain;box-shadow:0 8px 40px rgba(0,0,0,.6)}
+#lb img{max-width:88vw;max-height:80vh;border-radius:8px;object-fit:contain}
 #lb-info{color:#fff;text-align:center}
 #lb-info .name{font-size:17px;font-weight:600}
 #lb-info .sid{font-size:13px;opacity:.7;margin-top:3px}
-#lb-close{position:fixed;top:18px;right:22px;color:#fff;font-size:30px;cursor:pointer;background:none;border:none;line-height:1;z-index:1001}
+#lb-close{position:fixed;top:18px;right:22px;color:#fff;font-size:30px;cursor:pointer;background:none;border:none;z-index:1001}
 
-#toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(80px);background:#1a1a1a;color:#fff;padding:10px 22px;border-radius:24px;font-size:13px;font-weight:500;z-index:999;transition:transform .3s;white-space:nowrap}
+#toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(80px);background:#1a1a1a;color:#fff;padding:10px 22px;border-radius:24px;font-size:13px;font-weight:500;z-index:3000;transition:transform .3s;white-space:nowrap}
 #toast.on{transform:translateX(-50%) translateY(0)}
 
 /* 인쇄 */
@@ -158,14 +167,9 @@ input[type=file]{display:none}
   .pc-body{padding:5px 7px}
   .pc-body .pname{font-size:12px;font-weight:700}
   .pc-body .pid{font-size:10px;color:#555;margin-top:1px}
-  .pc-body .pfn{font-size:9px;color:#aaa;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .pc-body .pfn{font-size:9px;color:#aaa;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 }
 #print-area{display:none}
-
-@media(max-width:600px){
-  .toolbar,.grid{padding:12px 14px}
-  header,.status-bar,#admin-banner{padding:12px 14px}
-}
 </style>
 </head>
 <body>
@@ -181,12 +185,12 @@ input[type=file]{display:none}
   </div>
 </header>
 
-<div id="admin-banner">
-  🛡️ 관리자 모드 활성화 <span>— 모든 편집 가능 · 로그아웃하려면 우측 상단 버튼 클릭</span>
+<div id="admin-banner" class="">
+  🛡️ 관리자 모드 활성화 <span>— 모든 편집 가능 · 학생 비번 관리 가능</span>
 </div>
 
 <div class="toolbar">
-  <label class="upload-btn disabled" id="upload-label">
+  <label class="upload-btn off" id="upload-label">
     📁 사진 폴더 선택
     <input type="file" id="file-input" multiple accept="image/*">
   </label>
@@ -194,7 +198,7 @@ input[type=file]{display:none}
   <button class="btn" onclick="printPDF()">🖨️ PDF 저장</button>
   <button class="btn" onclick="downloadExcel()">⬇ Excel 저장</button>
   <div class="sep"></div>
-  <button class="btn danger disabled" id="clear-btn" onclick="clearAll()">🗑 전체 삭제</button>
+  <button class="btn danger off" id="clear-btn" onclick="clearAll()">🗑 전체 삭제</button>
 </div>
 
 <div class="status-bar">
@@ -215,17 +219,34 @@ input[type=file]{display:none}
   <div class="pg" id="print-grid"></div>
 </div>
 
-<!-- 비밀번호 모달 -->
-<div id="pw-modal">
-  <div class="pw-box">
-    <h3>🔐 관리자 인증</h3>
-    <p id="pw-desc">관리자 비밀번호를 입력하세요</p>
-    <input type="password" id="pw-input" placeholder="비밀번호" maxlength="20"
+<!-- 관리자/학생 비밀번호 모달 -->
+<div class="modal-bg" id="pw-modal">
+  <div class="modal-box">
+    <h3 id="pw-title">🔐 비밀번호 확인</h3>
+    <p id="pw-desc"></p>
+    <input type="password" id="pw-input" placeholder="비밀번호 입력" maxlength="20"
       onkeydown="if(event.key==='Enter')confirmPW()">
-    <div class="pw-error" id="pw-error"></div>
-    <div class="pw-btns">
-      <button class="pw-cancel" onclick="cancelPW()">취소</button>
-      <button class="pw-confirm" onclick="confirmPW()">확인</button>
+    <div class="modal-error" id="pw-error"></div>
+    <div class="modal-btns">
+      <button class="mb-cancel" onclick="cancelPW()">취소</button>
+      <button class="mb-confirm" onclick="confirmPW()">확인</button>
+    </div>
+  </div>
+</div>
+
+<!-- 학생 비번 설정 모달 -->
+<div class="modal-bg" id="setpw-modal">
+  <div class="modal-box">
+    <h3>🔑 내 카드 비밀번호 설정</h3>
+    <p id="setpw-desc">비밀번호를 설정하면 본인만 학번·이름을 수정할 수 있어요.<br>관리자는 항상 수정 가능합니다.</p>
+    <input type="password" id="setpw-new" placeholder="새 비밀번호 (4자리 이상)" maxlength="20"
+      onkeydown="if(event.key==='Enter')document.getElementById('setpw-confirm-input').focus()">
+    <input type="password" id="setpw-confirm-input" placeholder="비밀번호 확인" maxlength="20" style="margin-top:8px"
+      onkeydown="if(event.key==='Enter')confirmSetPW()">
+    <div class="modal-error" id="setpw-error"></div>
+    <div class="modal-btns">
+      <button class="mb-cancel" onclick="cancelSetPW()">취소</button>
+      <button class="mb-confirm" onclick="confirmSetPW()">설정 완료</button>
     </div>
   </div>
 </div>
@@ -245,11 +266,13 @@ input[type=file]{display:none}
 <script>
 const ADMIN_PW = '1004';
 let isAdmin = false;
-let pwResolve = null; // 비밀번호 확인 Promise resolver
+
+// 세션 내 잠금 해제된 카드 ID 목록
+const unlockedCards = new Set();
 
 const state = { items: [], ready: false };
 
-// ── Firebase ──────────────────────────────────
+// ── Firebase ──────────────────────────────────────────────────
 function waitFB(cb) {
   if (window.firebaseReady) cb();
   else window.addEventListener('firebase-ready', cb, { once: true });
@@ -257,28 +280,39 @@ function waitFB(cb) {
 waitFB(() => {
   state.ready = true;
   document.getElementById('fb-dot').classList.add('ok');
-  document.getElementById('fb-status').textContent = 'Firebase 연결됨 — 이미지는 Storage에, 데이터는 DB에 저장';
+  document.getElementById('fb-status').textContent = 'Firebase 연결됨 — 이미지 Storage · 데이터 DB 자동 저장';
   loadDB();
 });
 
 function saveDB(item) {
   if (!state.ready) return;
   window._set(window._dbRef(window._db, 'students/' + item.id), {
-    filename: item.filename, studentId: item.studentId || '',
-    name: item.name || '', imageUrl: item.imageUrl || '',
+    filename: item.filename,
+    studentId: item.studentId || '',
+    name: item.name || '',
+    imageUrl: item.imageUrl || '',
+    studentPw: item.studentPw || '',  // 학생 비번 (평문 — 교육용 앱이므로)
   });
 }
 
 function loadDB() {
   window._onValue(window._dbRef(window._db, 'students'), snap => {
     const data = snap.val() || {};
+    // 새로 추가된 항목만 push (기존 유지)
     Object.entries(data).forEach(([id, v]) => {
       const ex = state.items.find(x => x.id === id);
       if (ex) {
-        ex.studentId = v.studentId; ex.name = v.name;
+        ex.studentId = v.studentId;
+        ex.name = v.name;
+        ex.studentPw = v.studentPw || '';
         if (!ex.imageUrl && v.imageUrl) ex.imageUrl = v.imageUrl;
       } else {
-        state.items.push({ id, filename: v.filename, studentId: v.studentId, name: v.name, imageUrl: v.imageUrl, uploading: false });
+        state.items.push({
+          id, filename: v.filename,
+          studentId: v.studentId, name: v.name,
+          imageUrl: v.imageUrl, uploading: false,
+          studentPw: v.studentPw || '',
+        });
       }
     });
     renderAll();
@@ -290,15 +324,21 @@ function removeDB(id) {
   window._set(window._dbRef(window._db, 'students/' + id), null);
 }
 
-// ── 관리자 모드 ───────────────────────────────
+// ── 관리자 모드 ───────────────────────────────────────────────
 function toggleAdmin() {
   if (isAdmin) {
     isAdmin = false;
     updateAdminUI();
     showToast('관리자 로그아웃');
   } else {
-    askPassword('관리자 비밀번호를 입력하세요').then(ok => {
-      if (ok) { isAdmin = true; updateAdminUI(); showToast('✅ 관리자 모드 활성화'); }
+    askPW('관리자 비밀번호를 입력하세요', '관리자 인증').then(ok => {
+      if (ok === ADMIN_PW) {
+        isAdmin = true;
+        updateAdminUI();
+        showToast('✅ 관리자 모드 활성화');
+      } else if (ok !== null) {
+        showToast('❌ 비밀번호가 틀렸습니다');
+      }
     });
   }
 }
@@ -306,29 +346,31 @@ function toggleAdmin() {
 function updateAdminUI() {
   const btn = document.getElementById('admin-btn');
   const banner = document.getElementById('admin-banner');
-  const uploadLabel = document.getElementById('upload-label');
-  const clearBtn = document.getElementById('clear-btn');
-
+  const ul = document.getElementById('upload-label');
+  const cb = document.getElementById('clear-btn');
   if (isAdmin) {
     btn.textContent = '🛡️ 관리자 로그아웃';
     btn.classList.add('active');
     banner.classList.add('on');
-    uploadLabel.classList.remove('disabled');
-    clearBtn.classList.remove('disabled');
+    ul.classList.remove('off');
+    cb.classList.remove('off');
   } else {
     btn.textContent = '🔒 관리자 로그인';
     btn.classList.remove('active');
     banner.classList.remove('on');
-    uploadLabel.classList.add('disabled');
-    clearBtn.classList.add('disabled');
+    ul.classList.add('off');
+    cb.classList.add('off');
   }
   renderAll();
 }
 
-// ── 비밀번호 모달 (Promise 기반) ──────────────
-function askPassword(desc) {
+// ── 비밀번호 모달 (Promise) ───────────────────────────────────
+let pwResolve = null;
+
+function askPW(desc, title) {
   return new Promise(resolve => {
     pwResolve = resolve;
+    document.getElementById('pw-title').textContent = '🔐 ' + (title || '비밀번호 확인');
     document.getElementById('pw-desc').textContent = desc;
     document.getElementById('pw-input').value = '';
     document.getElementById('pw-error').textContent = '';
@@ -339,42 +381,92 @@ function askPassword(desc) {
 
 function confirmPW() {
   const val = document.getElementById('pw-input').value;
-  if (val === ADMIN_PW) {
-    document.getElementById('pw-modal').classList.remove('on');
-    if (pwResolve) { pwResolve(true); pwResolve = null; }
-  } else {
-    document.getElementById('pw-error').textContent = '❌ 비밀번호가 틀렸습니다';
-    document.getElementById('pw-input').value = '';
-    document.getElementById('pw-input').focus();
-  }
+  if (!val) { document.getElementById('pw-error').textContent = '비밀번호를 입력하세요'; return; }
+  document.getElementById('pw-modal').classList.remove('on');
+  if (pwResolve) { pwResolve(val); pwResolve = null; }
 }
 
 function cancelPW() {
   document.getElementById('pw-modal').classList.remove('on');
-  if (pwResolve) { pwResolve(false); pwResolve = null; }
+  if (pwResolve) { pwResolve(null); pwResolve = null; }
 }
 
-document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') {
-    cancelPW();
-    document.getElementById('lb').classList.remove('on');
-  }
-});
+// ── 학생 비번 설정 모달 ───────────────────────────────────────
+let setPwTargetId = null;
+let setPwResolve = null;
 
-// ── 파일 업로드 ───────────────────────────────
+function openSetPW(id) {
+  setPwTargetId = id;
+  document.getElementById('setpw-new').value = '';
+  document.getElementById('setpw-confirm-input').value = '';
+  document.getElementById('setpw-error').textContent = '';
+  document.getElementById('setpw-modal').classList.add('on');
+  setTimeout(() => document.getElementById('setpw-new').focus(), 100);
+}
+
+function confirmSetPW() {
+  const pw1 = document.getElementById('setpw-new').value;
+  const pw2 = document.getElementById('setpw-confirm-input').value;
+  if (pw1.length < 4) { document.getElementById('setpw-error').textContent = '4자리 이상 입력하세요'; return; }
+  if (pw1 !== pw2) { document.getElementById('setpw-error').textContent = '비밀번호가 일치하지 않습니다'; return; }
+  const item = state.items.find(x => x.id === setPwTargetId);
+  if (item) {
+    item.studentPw = pw1;
+    unlockedCards.add(item.id); // 설정 후 바로 잠금 해제 상태
+    saveDB(item);
+    renderAll();
+    showToast('🔑 비밀번호가 설정됐어요');
+  }
+  document.getElementById('setpw-modal').classList.remove('on');
+}
+
+function cancelSetPW() {
+  document.getElementById('setpw-modal').classList.remove('on');
+}
+
+// ── 학생 카드 잠금 해제 ───────────────────────────────────────
+function unlockCard(id) {
+  const item = state.items.find(x => x.id === id);
+  if (!item) return;
+  if (!item.studentPw) {
+    // 비번 없으면 바로 편집 가능 (비번 설정 유도)
+    unlockedCards.add(id);
+    renderAll();
+    showToast('✏️ 편집 가능 — 비밀번호를 설정하는 것을 권장해요');
+    return;
+  }
+  askPW('이 카드의 비밀번호를 입력하세요', '카드 잠금 해제').then(val => {
+    if (val === null) return;
+    if (val === item.studentPw || val === ADMIN_PW) {
+      unlockedCards.add(id);
+      renderAll();
+      showToast('🔓 잠금 해제됨 — 학번·이름을 수정할 수 있어요');
+    } else {
+      showToast('❌ 비밀번호가 틀렸습니다');
+    }
+  });
+}
+
+function lockCard(id) {
+  unlockedCards.delete(id);
+  renderAll();
+  showToast('🔒 카드가 잠겼어요');
+}
+
+// ── 파일 업로드 ───────────────────────────────────────────────
 document.getElementById('file-input').addEventListener('change', async e => {
   if (!isAdmin) return;
   const files = Array.from(e.target.files);
   for (const file of files) {
     if (state.items.find(x => x.filename === file.name)) { showToast(file.name + ' — 이미 업로드됨'); continue; }
     const id = 'img_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6);
-    const item = { id, filename: file.name, studentId: '', name: '', imageUrl: '', uploading: true };
+    const item = { id, filename: file.name, studentId: '', name: '', imageUrl: '', uploading: true, studentPw: '' };
     state.items.push(item);
     renderAll();
     try {
-      const storageRef = window._sRef(window._storage, 'students/' + id + '_' + file.name);
-      await window._uploadBytes(storageRef, file);
-      item.imageUrl = await window._getDownloadURL(storageRef);
+      const sr = window._sRef(window._storage, 'students/' + id + '_' + file.name);
+      await window._uploadBytes(sr, file);
+      item.imageUrl = await window._getDownloadURL(sr);
       item.uploading = false;
       saveDB(item);
       renderAll();
@@ -388,82 +480,110 @@ document.getElementById('file-input').addEventListener('change', async e => {
   e.target.value = '';
 });
 
-// ── 렌더링 ────────────────────────────────────
+// ── 렌더링 ────────────────────────────────────────────────────
 function renderAll() {
   const grid = document.getElementById('grid');
   document.getElementById('count-label').textContent = state.items.length + '장';
-
   if (state.items.length === 0) {
     grid.innerHTML = `<div class="empty"><div class="icon">🖼️</div><h2>사진을 업로드해 주세요</h2><p>관리자 로그인 후 사진 폴더를 선택하세요</p></div>`;
     return;
   }
 
-  grid.innerHTML = state.items.map(item => `
-    <div class="card ${isAdmin ? '' : 'locked'}" id="card-${item.id}">
-      ${!isAdmin ? `<div class="lock-overlay" onclick="requestEdit('${item.id}')"></div><span class="lock-icon">🔒</span>` : ''}
-      <span class="save-badge" id="sb-${item.id}">✅ 저장됨</span>
-      <div class="img-wrap" onclick="openLB('${item.id}')">
-        ${item.imageUrl
-          ? `<img src="${item.imageUrl}" alt="${item.filename}" loading="lazy">`
-          : `<div class="img-placeholder">${item.error ? '❌' : '📷'}</div>`}
-        ${item.uploading ? `<div class="uploading-overlay"><span>업로드 중...</span><div class="pbar-wrap"><div class="pbar"></div></div></div>` : ''}
-        ${item.imageUrl ? `<span class="zoom-badge">🔍 원본 보기</span>` : ''}
-      </div>
-      <div class="card-body">
-        <div class="card-filename" title="${item.filename}">${item.filename}</div>
-        <div class="field">
-          <label>학번</label>
-          <input type="text" value="${item.studentId || ''}" placeholder="${isAdmin ? '예: 20241234' : '🔒 잠김'}"
-            ${isAdmin ? `oninput="handleInput('${item.id}', 'studentId', this.value)"` : 'readonly'}>
+  grid.innerHTML = state.items.map(item => {
+    const unlocked = isAdmin || unlockedCards.has(item.id);
+    const hasPw = !!item.studentPw;
+    const cardClass = hasPw ? (unlockedCards.has(item.id) ? 'unlocked-student' : 'has-pw') : '';
+
+    // 상태 칩
+    let chip = '';
+    if (isAdmin) chip = `<span class="status-chip chip-unlocked">🛡️ 관리자</span>`;
+    else if (unlockedCards.has(item.id)) chip = `<span class="status-chip chip-unlocked">🔓 편집 중</span>`;
+    else if (hasPw) chip = `<span class="status-chip chip-locked">🔒 잠김</span>`;
+    else chip = `<span class="status-chip chip-nopw">✏️ 비번 없음</span>`;
+
+    // 카드 하단 버튼
+    let actions = '';
+    if (isAdmin) {
+      // 관리자: 학생 비번 초기화 버튼
+      actions = hasPw
+        ? `<button class="card-btn set-pw" onclick="adminResetPW('${item.id}')">🔑 비번 초기화</button>`
+        : `<button class="card-btn set-pw" style="opacity:.4;pointer-events:none">비번 없음</button>`;
+    } else if (unlockedCards.has(item.id)) {
+      actions = `
+        ${!hasPw ? `<button class="card-btn set-pw" onclick="openSetPW('${item.id}')">🔑 비번 설정</button>` : ''}
+        <button class="card-btn lock-again" onclick="lockCard('${item.id}')">🔒 잠금</button>
+      `;
+    } else {
+      actions = `<button class="card-btn unlock" onclick="unlockCard('${item.id}')">🔓 편집하기</button>`;
+    }
+
+    return `
+      <div class="card ${cardClass}" id="card-${item.id}">
+        ${chip}
+        <span class="save-badge" id="sb-${item.id}">✅ 저장됨</span>
+        <div class="img-wrap" onclick="openLB('${item.id}')">
+          ${item.imageUrl
+            ? `<img src="${item.imageUrl}" alt="${item.filename}" loading="lazy">`
+            : `<div class="img-placeholder">${item.error ? '❌' : '📷'}</div>`}
+          ${item.uploading ? `<div class="uploading-overlay"><span>업로드 중...</span><div class="pbar-wrap"><div class="pbar"></div></div></div>` : ''}
+          ${item.imageUrl ? `<span class="zoom-badge">🔍 원본 보기</span>` : ''}
         </div>
-        <div class="field">
-          <label>이름</label>
-          <input type="text" value="${item.name || ''}" placeholder="${isAdmin ? '홍길동' : '🔒 잠김'}"
-            ${isAdmin ? `oninput="handleInput('${item.id}', 'name', this.value)"` : 'readonly'}>
+        <div class="card-body">
+          <div class="card-filename" title="${item.filename}">${item.filename}</div>
+          <div class="field">
+            <label>학번</label>
+            <input type="text" value="${item.studentId || ''}"
+              placeholder="${unlocked ? '예: 20241234' : '🔒 잠김'}"
+              ${unlocked ? `oninput="handleInput('${item.id}','studentId',this.value)"` : 'readonly'}>
+          </div>
+          <div class="field">
+            <label>이름</label>
+            <input type="text" value="${item.name || ''}"
+              placeholder="${unlocked ? '홍길동' : '🔒 잠김'}"
+              ${unlocked ? `oninput="handleInput('${item.id}','name',this.value)"` : 'readonly'}>
+          </div>
+          <div class="card-actions">${actions}</div>
         </div>
       </div>
-    </div>
-  `).join('');
+    `;
+  }).join('');
 }
 
-// 잠금 상태에서 클릭 시 비번 요청
-function requestEdit(id) {
-  askPassword('수정하려면 관리자 비밀번호가 필요합니다').then(ok => {
-    if (ok) { isAdmin = true; updateAdminUI(); showToast('✅ 관리자 모드 — 이제 편집 가능합니다'); }
-  });
-}
-
-// ── 자동 저장 ─────────────────────────────────
+// ── 자동 저장 ─────────────────────────────────────────────────
 const timers = {};
 function handleInput(id, field, value) {
-  if (!isAdmin) return;
   const item = state.items.find(x => x.id === id);
   if (!item) return;
+  if (!isAdmin && !unlockedCards.has(id)) return;
   item[field] = value;
   clearTimeout(timers[id]);
   timers[id] = setTimeout(() => {
     saveDB(item);
-    // 저장됨 배지 표시
     const el = document.getElementById('sb-' + id);
-    if (el) {
-      el.classList.add('show');
-      setTimeout(() => el.classList.remove('show'), 2500);
-    }
+    if (el) { el.classList.add('show'); setTimeout(() => el.classList.remove('show'), 2500); }
     showToast('💾 저장됨');
   }, 700);
 }
 
-// ── 전체 삭제 ─────────────────────────────────
+// ── 관리자: 학생 비번 초기화 ─────────────────────────────────
+function adminResetPW(id) {
+  if (!isAdmin) return;
+  if (!confirm('이 카드의 학생 비밀번호를 초기화할까요?')) return;
+  const item = state.items.find(x => x.id === id);
+  if (item) { item.studentPw = ''; saveDB(item); renderAll(); showToast('비밀번호 초기화됨'); }
+}
+
+// ── 전체 삭제 ─────────────────────────────────────────────────
 function clearAll() {
   if (!isAdmin) return;
-  if (!confirm('모든 데이터를 삭제할까요?\n(Storage 파일은 Firebase 콘솔에서 별도 삭제)')) return;
-  state.items.forEach(item => removeDB(item.id));
+  if (!confirm('모든 데이터를 삭제할까요?')) return;
+  state.items.forEach(i => removeDB(i.id));
   state.items = [];
   renderAll();
   showToast('전체 삭제됨');
 }
 
-// ── 라이트박스 ────────────────────────────────
+// ── 라이트박스 ────────────────────────────────────────────────
 function openLB(id) {
   const item = state.items.find(x => x.id === id);
   if (!item || !item.imageUrl) return;
@@ -476,7 +596,14 @@ function closeLB(e) {
   if (e.target === document.getElementById('lb')) document.getElementById('lb').classList.remove('on');
 }
 
-// ── PDF 인쇄 ──────────────────────────────────
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    cancelPW(); cancelSetPW();
+    document.getElementById('lb').classList.remove('on');
+  }
+});
+
+// ── PDF ───────────────────────────────────────────────────────
 function printPDF() {
   if (state.items.length === 0) { showToast('사진이 없습니다'); return; }
   document.getElementById('print-date').textContent =
@@ -494,7 +621,7 @@ function printPDF() {
   `).join('');
   const imgs = pg.querySelectorAll('img');
   let loaded = 0;
-  if (imgs.length === 0) { window.print(); return; }
+  if (!imgs.length) { window.print(); return; }
   showToast('이미지 로딩 후 인쇄창이 열립니다...');
   imgs.forEach(img => {
     if (img.complete) { if (++loaded === imgs.length) window.print(); }
@@ -502,21 +629,21 @@ function printPDF() {
   });
 }
 
-// ── Excel ─────────────────────────────────────
+// ── Excel ─────────────────────────────────────────────────────
 function downloadExcel() {
   if (state.items.length === 0) { showToast('데이터가 없습니다'); return; }
-  const rows = [['번호', '파일명', '학번', '이름', '이미지 URL']];
+  const rows = [['번호','파일명','학번','이름','이미지 URL']];
   state.items.forEach((item, i) =>
-    rows.push([i + 1, item.filename, item.studentId || '', item.name || '', item.imageUrl || '']));
+    rows.push([i+1, item.filename, item.studentId||'', item.name||'', item.imageUrl||'']));
   const wb = XLSX.utils.book_new();
   const ws = XLSX.utils.aoa_to_sheet(rows);
-  ws['!cols'] = [{ wch: 6 }, { wch: 32 }, { wch: 14 }, { wch: 14 }, { wch: 60 }];
+  ws['!cols'] = [{wch:6},{wch:32},{wch:14},{wch:14},{wch:60}];
   XLSX.utils.book_append_sheet(wb, ws, '수강생명부');
-  XLSX.writeFile(wb, '수강생명부_' + new Date().toISOString().slice(0, 10) + '.xlsx');
+  XLSX.writeFile(wb, '수강생명부_' + new Date().toISOString().slice(0,10) + '.xlsx');
   showToast('Excel 저장 완료!');
 }
 
-// ── 토스트 ────────────────────────────────────
+// ── 토스트 ────────────────────────────────────────────────────
 let toastTimer;
 function showToast(msg) {
   const t = document.getElementById('toast');
