@@ -8,7 +8,7 @@
 <!-- Firebase SDK -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
-  import { getDatabase, ref, set, get, onValue } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-database.js";
+  import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-database.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyBNrzAJtYQh8ZBpZaLD-WC2GlLKSwdoPcY",
@@ -23,19 +23,14 @@
 
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
-
   window._db = db;
   window._ref = ref;
   window._set = set;
-  window._get = get;
   window._onValue = onValue;
   window.firebaseReady = true;
   window.dispatchEvent(new Event('firebase-ready'));
 </script>
 
-<!-- jsPDF + jsPDF-AutoTable -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <!-- SheetJS -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
@@ -49,203 +44,87 @@
     --text: #1a1a1a;
     --muted: #6b6a65;
     --danger: #c0392b;
-    --success: #1a7a4a;
     --radius: 10px;
-    --shadow: 0 2px 12px rgba(0,0,0,0.08);
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', -apple-system, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
 
-  body {
-    font-family: 'Pretendard', 'Apple SD Gothic Neo', -apple-system, sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-  }
-
-  header {
-    background: var(--accent);
-    color: #fff;
-    padding: 18px 32px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-  }
-  header h1 { font-size: 20px; font-weight: 600; letter-spacing: -0.3px; }
+  header { background: var(--accent); color: #fff; padding: 18px 32px; display: flex; align-items: center; justify-content: space-between; }
+  header h1 { font-size: 20px; font-weight: 600; }
   header .subtitle { font-size: 13px; opacity: 0.75; margin-top: 2px; }
 
-  .toolbar {
-    display: flex;
-    gap: 10px;
-    padding: 20px 32px 16px;
-    align-items: center;
-    flex-wrap: wrap;
-    background: var(--card);
-    border-bottom: 1px solid var(--border);
-  }
-  .toolbar label.upload-btn {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 8px 16px;
-    background: var(--accent);
-    color: #fff;
-    border-radius: var(--radius);
-    cursor: pointer;
-    font-size: 13px;
-    font-weight: 500;
-    transition: opacity 0.15s;
-  }
+  .toolbar { display: flex; gap: 10px; padding: 16px 32px; align-items: center; flex-wrap: wrap; background: var(--card); border-bottom: 1px solid var(--border); }
+  .toolbar label.upload-btn { display: flex; align-items: center; gap: 6px; padding: 8px 16px; background: var(--accent); color: #fff; border-radius: var(--radius); cursor: pointer; font-size: 13px; font-weight: 500; }
   .toolbar label.upload-btn:hover { opacity: 0.88; }
   .toolbar input[type=file] { display: none; }
 
-  .btn {
-    padding: 8px 16px;
-    border-radius: var(--radius);
-    border: 1.5px solid var(--border);
-    background: var(--card);
-    color: var(--text);
-    font-size: 13px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.15s;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
+  .btn { padding: 8px 16px; border-radius: var(--radius); border: 1.5px solid var(--border); background: var(--card); color: var(--text); font-size: 13px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 6px; font-family: inherit; }
   .btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
-  .btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
-  .btn.primary:hover { opacity: 0.88; color: #fff; background: var(--accent); }
   .btn.danger { border-color: #e8d0ce; color: var(--danger); }
   .btn.danger:hover { background: #fdf0f0; }
-
   .toolbar-sep { width: 1px; height: 28px; background: var(--border); margin: 0 4px; }
 
-  .status-bar {
-    padding: 10px 32px;
-    font-size: 12px;
-    color: var(--muted);
-    background: var(--accent-light);
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
+  .status-bar { padding: 8px 32px; font-size: 12px; color: var(--muted); background: var(--accent-light); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; }
   .status-dot { width: 7px; height: 7px; border-radius: 50%; background: #ccc; flex-shrink: 0; }
   .status-dot.ok { background: #27ae60; }
-  .status-dot.err { background: var(--danger); }
 
-  .grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 20px;
-    padding: 28px 32px;
-  }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px; padding: 28px 32px; }
 
-  .card {
-    background: var(--card);
-    border-radius: 12px;
-    border: 1.5px solid var(--border);
-    overflow: hidden;
-    transition: box-shadow 0.2s, transform 0.2s;
-    position: relative;
-  }
-  .card:hover { box-shadow: var(--shadow); transform: translateY(-2px); }
+  .card { background: var(--card); border-radius: 12px; border: 1.5px solid var(--border); overflow: hidden; transition: box-shadow 0.2s, transform 0.2s; position: relative; }
+  .card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.10); transform: translateY(-2px); }
 
-  .card-img {
-    width: 100%;
-    aspect-ratio: 3/4;
-    object-fit: cover;
-    display: block;
-    background: #eee;
-  }
-  .card-img-placeholder {
-    width: 100%;
-    aspect-ratio: 3/4;
-    background: linear-gradient(135deg, #e8edf2 0%, #d8e4ee 100%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 40px;
-    color: #aab8c8;
-  }
+  .card-img-wrap { position: relative; cursor: zoom-in; }
+  .card-img { width: 100%; aspect-ratio: 3/4; object-fit: cover; display: block; }
+  .card-img-placeholder { width: 100%; aspect-ratio: 3/4; background: #e8edf2; display: flex; align-items: center; justify-content: center; font-size: 40px; color: #aab8c8; }
+  .zoom-hint { position: absolute; bottom: 6px; right: 6px; background: rgba(0,0,0,0.5); color: #fff; border-radius: 20px; padding: 2px 8px; font-size: 10px; opacity: 0; transition: opacity 0.2s; pointer-events: none; }
+  .card-img-wrap:hover .zoom-hint { opacity: 1; }
 
   .card-body { padding: 12px; }
-  .card-filename {
-    font-size: 11px;
-    color: var(--muted);
-    margin-bottom: 8px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  .card-field {
-    margin-bottom: 6px;
-  }
-  .card-field label {
-    display: block;
-    font-size: 10px;
-    font-weight: 600;
-    color: var(--muted);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 3px;
-  }
-  .card-field input {
-    width: 100%;
-    padding: 6px 8px;
-    border-radius: 6px;
-    border: 1.5px solid var(--border);
-    font-size: 13px;
-    color: var(--text);
-    background: var(--bg);
-    transition: border-color 0.15s;
-    font-family: inherit;
-  }
+  .card-filename { font-size: 11px; color: var(--muted); margin-bottom: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .card-field { margin-bottom: 6px; }
+  .card-field label { display: block; font-size: 10px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 3px; }
+  .card-field input { width: 100%; padding: 6px 8px; border-radius: 6px; border: 1.5px solid var(--border); font-size: 13px; color: var(--text); background: var(--bg); font-family: inherit; }
   .card-field input:focus { outline: none; border-color: var(--accent); background: #fff; }
-  .card-field input.saved { border-color: #a8d8b9; background: #f0fff7; }
 
-  .save-indicator {
-    position: absolute;
-    top: 8px;
-    right: 8px;
-    background: rgba(39,174,96,0.9);
-    color: #fff;
-    border-radius: 20px;
-    padding: 2px 8px;
-    font-size: 10px;
-    font-weight: 600;
-    opacity: 0;
-    transition: opacity 0.3s;
-    pointer-events: none;
-  }
+  .save-indicator { position: absolute; top: 8px; right: 8px; background: rgba(39,174,96,0.9); color: #fff; border-radius: 20px; padding: 2px 8px; font-size: 10px; font-weight: 600; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
   .save-indicator.show { opacity: 1; }
 
-  .empty-state {
-    grid-column: 1 / -1;
-    text-align: center;
-    padding: 80px 20px;
-    color: var(--muted);
-  }
+  .empty-state { grid-column: 1 / -1; text-align: center; padding: 80px 20px; color: var(--muted); }
   .empty-state .icon { font-size: 52px; margin-bottom: 16px; }
   .empty-state h2 { font-size: 18px; font-weight: 500; margin-bottom: 8px; }
-  .empty-state p { font-size: 14px; }
 
-  #toast {
-    position: fixed;
-    bottom: 28px;
-    left: 50%;
-    transform: translateX(-50%) translateY(80px);
-    background: #1a1a1a;
-    color: #fff;
-    padding: 10px 22px;
-    border-radius: 24px;
-    font-size: 13px;
-    font-weight: 500;
-    z-index: 999;
-    transition: transform 0.3s;
-    white-space: nowrap;
+  /* ── Lightbox ── */
+  #lightbox { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.88); z-index: 1000; align-items: center; justify-content: center; flex-direction: column; gap: 12px; }
+  #lightbox.show { display: flex; }
+  #lightbox img { max-width: 90vw; max-height: 82vh; border-radius: 8px; object-fit: contain; box-shadow: 0 8px 40px rgba(0,0,0,0.6); }
+  #lightbox-info { color: #fff; font-size: 15px; text-align: center; }
+  #lightbox-info .lb-name { font-weight: 600; font-size: 17px; }
+  #lightbox-info .lb-id { opacity: 0.7; font-size: 13px; margin-top: 2px; }
+  #lightbox-close { position: fixed; top: 20px; right: 24px; color: #fff; font-size: 28px; cursor: pointer; line-height: 1; background: none; border: none; }
+
+  /* ── 인쇄용 PDF 레이아웃 ── */
+  #print-area { display: none; }
+
+  @media print {
+    body > *:not(#print-area) { display: none !important; }
+    #print-area {
+      display: block !important;
+      font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+    }
+    .print-header { text-align: center; margin-bottom: 16px; }
+    .print-header h2 { font-size: 18px; font-weight: 700; }
+    .print-header p { font-size: 11px; color: #888; margin-top: 4px; }
+    .print-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+    .print-card { border: 1px solid #ddd; border-radius: 6px; overflow: hidden; break-inside: avoid; }
+    .print-card img { width: 100%; aspect-ratio: 3/4; object-fit: cover; display: block; }
+    .print-card .print-no-img { width: 100%; aspect-ratio: 3/4; background: #eee; display: flex; align-items: center; justify-content: center; font-size: 24px; }
+    .print-card-body { padding: 6px 8px; }
+    .print-card-body .pname { font-size: 12px; font-weight: 700; }
+    .print-card-body .pid { font-size: 10px; color: #666; margin-top: 1px; }
+    .print-card-body .pfile { font-size: 9px; color: #aaa; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   }
+
+  #toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(80px); background: #1a1a1a; color: #fff; padding: 10px 22px; border-radius: 24px; font-size: 13px; font-weight: 500; z-index: 999; transition: transform 0.3s; white-space: nowrap; }
   #toast.show { transform: translateX(-50%) translateY(0); }
 
   @media (max-width: 600px) {
@@ -253,13 +132,6 @@
     .grid { padding: 16px; gap: 14px; }
     header { padding: 14px 16px; }
     .status-bar { padding: 8px 16px; }
-  }
-
-  @media print {
-    header, .toolbar, .status-bar, #toast { display: none !important; }
-    .grid { padding: 0; gap: 12px; }
-    .card { break-inside: avoid; }
-    .card:hover { transform: none; box-shadow: none; }
   }
 </style>
 </head>
@@ -278,14 +150,10 @@
     📁 사진 폴더 선택
     <input type="file" id="file-input" multiple accept="image/*">
   </label>
-
   <div class="toolbar-sep"></div>
-
-  <button class="btn" onclick="downloadPDF()">⬇ PDF 저장</button>
+  <button class="btn" onclick="printPDF()">🖨️ PDF 저장</button>
   <button class="btn" onclick="downloadExcel()">⬇ Excel 저장</button>
-
   <div class="toolbar-sep"></div>
-
   <button class="btn danger" onclick="clearAll()">🗑 전체 삭제</button>
 </div>
 
@@ -302,16 +170,30 @@
   </div>
 </div>
 
-<div id="toast">저장되었습니다</div>
+<!-- 인쇄 전용 영역 -->
+<div id="print-area">
+  <div class="print-header">
+    <h2>수강생 사진 명부</h2>
+    <p id="print-date"></p>
+  </div>
+  <div class="print-grid" id="print-grid"></div>
+</div>
+
+<!-- 라이트박스 -->
+<div id="lightbox" onclick="closeLightbox()">
+  <button id="lightbox-close" onclick="closeLightbox()">✕</button>
+  <img id="lb-img" src="" alt="">
+  <div id="lightbox-info">
+    <div class="lb-name" id="lb-name"></div>
+    <div class="lb-id" id="lb-id"></div>
+  </div>
+</div>
+
+<div id="toast"></div>
 
 <script>
-// ─── State ────────────────────────────────────────────
-const state = {
-  items: [],       // { id, filename, dataUrl, studentId, name }
-  dbReady: false,
-};
+const state = { items: [], dbReady: false };
 
-// ─── Firebase helpers ─────────────────────────────────
 function waitFirebase(cb) {
   if (window.firebaseReady) cb();
   else window.addEventListener('firebase-ready', cb, { once: true });
@@ -326,8 +208,7 @@ waitFirebase(() => {
 
 function saveToFirebase(item) {
   if (!state.dbReady) return;
-  const r = window._ref(window._db, 'students/' + item.id);
-  window._set(r, {
+  window._set(window._ref(window._db, 'students/' + item.id), {
     filename: item.filename,
     studentId: item.studentId || '',
     name: item.name || '',
@@ -336,22 +217,16 @@ function saveToFirebase(item) {
 }
 
 function loadFromFirebase() {
-  const r = window._ref(window._db, 'students');
-  window._onValue(r, snap => {
+  window._onValue(window._ref(window._db, 'students'), snap => {
     const data = snap.val() || {};
-    const loaded = Object.entries(data).map(([id, v]) => ({
-      id, filename: v.filename, studentId: v.studentId,
-      name: v.name, dataUrl: v.dataUrl,
-    }));
-    // Merge: keep local dataUrls if already present
-    loaded.forEach(remote => {
-      const existing = state.items.find(x => x.id === remote.id);
+    Object.entries(data).forEach(([id, v]) => {
+      const existing = state.items.find(x => x.id === id);
       if (existing) {
-        existing.studentId = remote.studentId;
-        existing.name = remote.name;
-        if (!existing.dataUrl && remote.dataUrl) existing.dataUrl = remote.dataUrl;
+        existing.studentId = v.studentId;
+        existing.name = v.name;
+        if (!existing.dataUrl && v.dataUrl) existing.dataUrl = v.dataUrl;
       } else {
-        state.items.push(remote);
+        state.items.push({ id, filename: v.filename, studentId: v.studentId, name: v.name, dataUrl: v.dataUrl });
       }
     });
     renderAll();
@@ -363,62 +238,52 @@ function removeFromFirebase(id) {
   window._set(window._ref(window._db, 'students/' + id), null);
 }
 
-// ─── File upload ──────────────────────────────────────
+// 업로드
 document.getElementById('file-input').addEventListener('change', e => {
-  const files = Array.from(e.target.files);
-  files.forEach(file => {
+  Array.from(e.target.files).forEach(file => {
+    if (state.items.find(x => x.filename === file.name)) return;
     const id = 'img_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
     const reader = new FileReader();
     reader.onload = ev => {
-      const item = {
-        id, filename: file.name, dataUrl: ev.target.result,
-        studentId: '', name: '',
-      };
-      // Avoid duplicates by filename
-      if (!state.items.find(x => x.filename === file.name)) {
-        state.items.push(item);
-        saveToFirebase(item);
-        renderAll();
-      }
+      const item = { id, filename: file.name, dataUrl: ev.target.result, studentId: '', name: '' };
+      state.items.push(item);
+      saveToFirebase(item);
+      renderAll();
     };
     reader.readAsDataURL(file);
   });
   e.target.value = '';
 });
 
-// ─── Render ───────────────────────────────────────────
+// 렌더링
 function renderAll() {
   const grid = document.getElementById('grid');
+  document.getElementById('count-label').textContent = state.items.length + '명';
+
   if (state.items.length === 0) {
-    grid.innerHTML = `<div class="empty-state">
-      <div class="icon">🖼️</div>
-      <h2>사진을 업로드해 주세요</h2>
-      <p>위의 "사진 폴더 선택" 버튼으로 여러 장을 한번에 선택할 수 있습니다</p>
-    </div>`;
-    document.getElementById('count-label').textContent = '0명';
+    grid.innerHTML = `<div class="empty-state"><div class="icon">🖼️</div><h2>사진을 업로드해 주세요</h2><p>"사진 폴더 선택"으로 여러 장을 한번에 선택하세요</p></div>`;
     return;
   }
-
-  document.getElementById('count-label').textContent = state.items.length + '명';
 
   grid.innerHTML = state.items.map(item => `
     <div class="card" id="card-${item.id}">
       <span class="save-indicator" id="si-${item.id}">저장됨 ✓</span>
-      ${item.dataUrl
-        ? `<img class="card-img" src="${item.dataUrl}" alt="${item.filename}" loading="lazy">`
-        : `<div class="card-img-placeholder">📷</div>`}
+      <div class="card-img-wrap" onclick="openLightbox('${item.id}')">
+        ${item.dataUrl
+          ? `<img class="card-img" src="${item.dataUrl}" alt="${item.filename}" loading="lazy">`
+          : `<div class="card-img-placeholder">📷</div>`}
+        <span class="zoom-hint">🔍 원본 보기</span>
+      </div>
       <div class="card-body">
         <div class="card-filename" title="${item.filename}">${item.filename}</div>
         <div class="card-field">
           <label>학번</label>
-          <input type="text" id="sid-${item.id}" value="${item.studentId || ''}"
-            placeholder="예: 20241234"
+          <input type="text" value="${item.studentId || ''}" placeholder="예: 20241234"
             oninput="handleInput('${item.id}', 'studentId', this.value)">
         </div>
         <div class="card-field">
           <label>이름</label>
-          <input type="text" id="name-${item.id}" value="${item.name || ''}"
-            placeholder="홍길동"
+          <input type="text" value="${item.name || ''}" placeholder="홍길동"
             oninput="handleInput('${item.id}', 'name', this.value)">
         </div>
       </div>
@@ -426,18 +291,14 @@ function renderAll() {
   `).join('');
 }
 
-// ─── Input debounce & save ────────────────────────────
+// 자동저장
 const timers = {};
 function handleInput(id, field, value) {
   const item = state.items.find(x => x.id === id);
   if (!item) return;
   item[field] = value;
-
   clearTimeout(timers[id]);
-  timers[id] = setTimeout(() => {
-    saveToFirebase(item);
-    showSaveIndicator(id);
-  }, 700);
+  timers[id] = setTimeout(() => { saveToFirebase(item); showSaveIndicator(id); }, 700);
 }
 
 function showSaveIndicator(id) {
@@ -457,7 +318,7 @@ function showToast(msg) {
   toastTimer = setTimeout(() => t.classList.remove('show'), 1800);
 }
 
-// ─── Clear all ────────────────────────────────────────
+// 전체 삭제
 function clearAll() {
   if (!confirm('모든 사진과 데이터를 삭제할까요?')) return;
   state.items.forEach(item => removeFromFirebase(item.id));
@@ -466,83 +327,54 @@ function clearAll() {
   showToast('전체 삭제됨');
 }
 
-// ─── PDF download ─────────────────────────────────────
-async function downloadPDF() {
+// ── 라이트박스 ──
+function openLightbox(id) {
+  const item = state.items.find(x => x.id === id);
+  if (!item || !item.dataUrl) return;
+  document.getElementById('lb-img').src = item.dataUrl;
+  document.getElementById('lb-name').textContent = item.name || '(이름 없음)';
+  document.getElementById('lb-id').textContent = item.studentId ? '학번: ' + item.studentId : item.filename;
+  document.getElementById('lightbox').classList.add('show');
+}
+function closeLightbox() {
+  document.getElementById('lightbox').classList.remove('show');
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
+
+// ── PDF: 브라우저 인쇄 기능 사용 (한글 완벽 지원) ──
+function printPDF() {
   if (state.items.length === 0) { showToast('사진이 없습니다'); return; }
-  showToast('PDF 생성 중...');
 
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
+  // 인쇄 영역 채우기
+  document.getElementById('print-date').textContent = new Date().toLocaleDateString('ko-KR') + ' 기준';
+  const pg = document.getElementById('print-grid');
+  pg.innerHTML = state.items.map((item, i) => `
+    <div class="print-card">
+      ${item.dataUrl
+        ? `<img src="${item.dataUrl}" alt="${item.filename}">`
+        : `<div class="print-no-img">📷</div>`}
+      <div class="print-card-body">
+        <div class="pname">${item.name || '(이름 없음)'}</div>
+        <div class="pid">${item.studentId || '학번 없음'}</div>
+        <div class="pfile">${item.filename}</div>
+      </div>
+    </div>
+  `).join('');
 
-  const cols = 3;
-  const marginX = 14, marginY = 20;
-  const cellW = (210 - marginX * 2) / cols;
-  const imgH = 45, textH = 14;
-  const cellH = imgH + textH + 6;
-
-  doc.setFont('helvetica');
-  doc.setFontSize(16);
-  doc.text('수강생 사진 명부', 105, 13, { align: 'center' });
-  doc.setFontSize(9);
-  doc.setTextColor(120);
-  doc.text(new Date().toLocaleDateString('ko-KR'), 196, 13, { align: 'right' });
-
-  for (let i = 0; i < state.items.length; i++) {
-    const item = state.items[i];
-    const col = i % cols;
-    const row = Math.floor(i / cols);
-    const x = marginX + col * cellW;
-    const y = marginY + 4 + row * cellH;
-
-    if (y + cellH > 280) {
-      doc.addPage();
-    }
-
-    const yy = y + ((y + cellH > 280) ? -(Math.floor((y - marginY - 4) / cellH) * cellH) : 0);
-
-    if (item.dataUrl) {
-      try {
-        const ext = item.filename.split('.').pop().toUpperCase().replace('JPG','JPEG');
-        doc.addImage(item.dataUrl, ext === 'JPEG' ? 'JPEG' : 'PNG', x, yy, cellW - 4, imgH);
-      } catch(e) {
-        doc.setFillColor(230, 235, 240);
-        doc.rect(x, yy, cellW - 4, imgH, 'F');
-      }
-    } else {
-      doc.setFillColor(230, 235, 240);
-      doc.rect(x, yy, cellW - 4, imgH, 'F');
-    }
-
-    doc.setTextColor(30);
-    doc.setFontSize(8);
-    doc.setFont('helvetica', 'bold');
-    const dispName = item.name || '(이름 없음)';
-    doc.text(dispName, x + (cellW - 4) / 2, yy + imgH + 5, { align: 'center' });
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(100);
-    doc.text(item.studentId || '학번 없음', x + (cellW - 4) / 2, yy + imgH + 9, { align: 'center' });
-    doc.setTextColor(160);
-    doc.setFontSize(6.5);
-    const fname = item.filename.length > 22 ? item.filename.slice(0, 20) + '…' : item.filename;
-    doc.text(fname, x + (cellW - 4) / 2, yy + imgH + 13, { align: 'center' });
-  }
-
-  doc.save('수강생명부_' + new Date().toISOString().slice(0,10) + '.pdf');
-  showToast('PDF 저장 완료!');
+  showToast('인쇄 대화상자가 열립니다. PDF로 저장을 선택하세요!');
+  setTimeout(() => window.print(), 400);
 }
 
-// ─── Excel download ───────────────────────────────────
+// ── Excel 저장 ──
 function downloadExcel() {
   if (state.items.length === 0) { showToast('데이터가 없습니다'); return; }
-
   const rows = [['번호', '파일명', '학번', '이름']];
   state.items.forEach((item, i) => {
     rows.push([i + 1, item.filename, item.studentId || '', item.name || '']);
   });
-
   const wb = XLSX.utils.book_new();
   const ws = XLSX.utils.aoa_to_sheet(rows);
-  ws['!cols'] = [{ wch: 6 }, { wch: 30 }, { wch: 14 }, { wch: 14 }];
+  ws['!cols'] = [{ wch: 6 }, { wch: 32 }, { wch: 14 }, { wch: 14 }];
   XLSX.utils.book_append_sheet(wb, ws, '수강생명부');
   XLSX.writeFile(wb, '수강생명부_' + new Date().toISOString().slice(0,10) + '.xlsx');
   showToast('Excel 저장 완료!');
