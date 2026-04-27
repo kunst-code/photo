@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>수강생 사진 명부</title>
+<title>필름 카메라 실습</title>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
@@ -176,8 +176,8 @@ input[type=file]{display:none}
 
 <header>
   <div>
-    <h1>📋 수강생 사진 명부</h1>
-    <div class="sub">사진 업로드 → 학번·이름 입력 → Firebase 자동 저장</div>
+    <h1>📋 필름 카메라 실습</h1>
+    <div class="sub">사진 업로드 → 학번·이름 입력 → 자동 저장</div>
   </div>
   <div class="header-right">
     <div id="count-label">0장</div>
@@ -215,7 +215,7 @@ input[type=file]{display:none}
 </div>
 
 <div id="print-area">
-  <div class="ph"><h2>수강생 사진 명부</h2><p id="print-date"></p></div>
+  <div class="ph"><h2>필름 카메라 실습</h2><p id="print-date"></p></div>
   <div class="pg" id="print-grid"></div>
 </div>
 
@@ -638,8 +638,8 @@ function downloadExcel() {
   const wb = XLSX.utils.book_new();
   const ws = XLSX.utils.aoa_to_sheet(rows);
   ws['!cols'] = [{wch:6},{wch:32},{wch:14},{wch:14},{wch:60}];
-  XLSX.utils.book_append_sheet(wb, ws, '수강생명부');
-  XLSX.writeFile(wb, '수강생명부_' + new Date().toISOString().slice(0,10) + '.xlsx');
+  XLSX.utils.book_append_sheet(wb, ws, '필름카메라실습');
+  XLSX.writeFile(wb, '필름카메라실습_' + new Date().toISOString().slice(0,10) + '.xlsx');
   showToast('Excel 저장 완료!');
 }
 
